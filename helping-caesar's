@@ -1,0 +1,92 @@
+const alphabet = "abcdefghijklmnopqrstuvwxyz";
+
+// Normalizes the shift so values larger than 26 or negative values still work.
+function normalizeShift(shiftValue) {
+  return ((shiftValue % 26) + 26) % 26;
+}
+
+// Shifts a single letter by the given value while preserving uppercase/lowercase.
+function shiftLetter(letter, shiftValue) {
+  if (!/[a-zA-Z]/.test(letter)) {
+    return letter;
+  }
+
+  const isUppercase = letter === letter.toUpperCase();
+  const base = isUppercase ? "A".charCodeAt(0) : "a".charCodeAt(0);
+  const letterCode = letter.charCodeAt(0);
+  const shiftedCode = ((letterCode - base + shiftValue) % 26) + base;
+
+  return String.fromCharCode(shiftedCode);
+}
+
+// Encrypts a message by shifting each letter and inserting a random letter every 2 letters.
+function encrypt(message, shiftValue) {
+  const normalizedShift = normalizeShift(shiftValue);
+  let encryptedMessage = "";
+  let counter = 0;
+
+  for (const char of message) {
+    if (!/[a-zA-Z]/.test(char)) {
+      encryptedMessage += char;
+      continue;
+    }
+
+    encryptedMessage += shiftLetter(char, normalizedShift);
+    counter += 1;
+
+    // Add a random lowercase letter after every two letters.
+    if (counter % 2 === 0) {
+      const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+      encryptedMessage += randomLetter;
+    }
+  }
+
+  return encryptedMessage;
+}
+
+// Decrypts a message by removing the inserted random letters and shifting backward.
+function decrypt(encryptedMessage, shiftValue) {
+  const normalizedShift = normalizeShift(shiftValue);
+  let filteredMessage = "";
+  let alphabeticPosition = 0;
+
+  // Each random letter is inserted after every two real letters, so it appears
+  // at every third alphabetic position in the encrypted text: positions 2, 5,
+  // 8, ... when counting only letters.
+  for (const char of encryptedMessage) {
+    if (!/[a-zA-Z]/.test(char)) {
+      filteredMessage += char;
+      continue;
+    }
+
+    if (alphabeticPosition % 3 !== 2) {
+      filteredMessage += char;
+    }
+
+    alphabeticPosition += 1;
+  }
+
+  let decryptedMessage = "";
+  for (const char of filteredMessage) {
+    if (!/[a-zA-Z]/.test(char)) {
+      decryptedMessage += char;
+      continue;
+    }
+
+    decryptedMessage += shiftLetter(char, -normalizedShift);
+  }
+
+  return decryptedMessage;
+}
+
+// Example tests from the lesson.
+console.log(encrypt("HELLO", 3));
+console.log(decrypt("KHOOR", 3));
+
+// Secret message challenge from the instructions.
+const secretMessage = "Iuuuau juxuu cuytudyuwxuj uixuqtuemu euv uHeuckubkui uqdut uHuuckui.u Juxuuhuu, umxuyiufuuh ujxuu umeuhtu 'uQkuhuubyukiu' ujeu juxuu muydutiu. uQdut urou ruuyudwu qurbuu ujeu wuuju jue ujxuyiu cuuiuiquwuu, uoeuk uxquluu suecufbuujuutu juxuu gukuuiju!";
+console.log("Secret message decrypted with shift 42:");
+console.log(decrypt(secretMessage, 42));
+
+// Attribution: This solution follows the Springboard Caesar Cipher project requirements.
+// Source: https://lessons.springboard.com/Caesar-s-Cipher-Helping-Caesar-s-Traditional-Secret-Party-30cf422b604881fba579e14391e54354
